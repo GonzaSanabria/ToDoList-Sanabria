@@ -1,13 +1,10 @@
 // Función para calcular el promedio
-// Definición de la clase Alumno que representa a cada estudiante
 class Alumno {
-  // Constructor que inicializa el número de alumno y un array para almacenar las notas
   constructor(numero) {
     this.numero = numero;
     this.notas = [];
   }
 
-  // Método para agregar una nota al array de notas
   agregarNota(nota) {
     if (!isNaN(nota) && nota >= 0 && nota <= 10) {
       this.notas.push(nota);
@@ -16,36 +13,44 @@ class Alumno {
     }
   }
 
-  // Método para calcular el promedio de las notas
   calcularPromedio() {
     const suma = this.notas.reduce((acc, nota) => acc + nota, 0);
     return this.notas.length > 0 ? suma / this.notas.length : 0;
   }
 }
 
-// Solicitar al usuario la cantidad de alumnos y notas a evaluar
-const cantidadAlumnos = parseInt(prompt("Ingrese la cantidad de alumnos a evaluar:"));
-const cantidadNotas = parseInt(prompt("Ingrese la cantidad de notas a promediar por alumno:"));
+const alumnos = [];
 
-// Validar que se ingresen valores numéricos positivos
-if (isNaN(cantidadAlumnos) || isNaN(cantidadNotas) || cantidadAlumnos <= 0 || cantidadNotas <= 0) {
-  console.log("Por favor, ingrese valores numéricos positivos.");
-} else {
-  // Array para almacenar los objetos Alumno
-  const alumnos = [];
-  // Iterar sobre cada alumno
-  for (let i = 1; i <= cantidadAlumnos; i++) {
-    const alumno = new Alumno(i); // Crear una instancia de Alumno para cada alumno
-    // Solicitar las notas para cada alumno
-    for (let j = 0; j < cantidadNotas; j++) {
-      const nota = parseFloat(prompt(`Ingrese la nota ${j + 1} para el alumno ${i}:`));
-      alumno.agregarNota(nota); // Agregar la nota al objeto Alumno
-    }
-    alumnos.push(alumno); // Agregar el objeto Alumno al array de alumnos
+// Evento de envío del formulario
+document.getElementById('form').addEventListener('submit', function(event) {
+  event.preventDefault(); // Evita que se envíe el formulario y se recargue la página
+  const alumnoNumero = parseInt(document.getElementById('alumnoNumero').value);
+  const nota = parseFloat(document.getElementById('nota').value);
+  const alumno = alumnos.find(alumno => alumno.numero === alumnoNumero);
+  if (alumno) {
+    alumno.agregarNota(nota);
+    const promedio = alumno.calcularPromedio();
+    mostrarResultado(promedio, alumno);
+    localStorage.setItem(`alumno_${alumno.numero}`, JSON.stringify(alumno)); // Almacena el objeto Alumno en localStorage
   }
+});
 
-  // Mostrar el promedio de cada alumno
-  alumnos.forEach(alumno => {
-    console.log(`El promedio del alumno ${alumno.numero} es: ${alumno.calcularPromedio().toFixed(2)}`);
-  });
+// Carga los datos almacenados en localStorage al cargar la página
+window.addEventListener('load', function() {
+  for (let i = 1; i <= cantidadAlumnos; i++) {
+    const storedAlumno = localStorage.getItem(`alumno_${i}`);
+    if (storedAlumno) {
+      const alumno = new Alumno(i);
+      const notas = JSON.parse(storedAlumno).notas;
+      notas.forEach(nota => alumno.agregarNota(nota));
+      alumnos.push(alumno);
+    }
+  }
+});
+
+// Función para mostrar el resultado en el DOM
+function mostrarResultado(promedio, alumno) {
+  const resultado = document.createElement('p');
+  resultado.textContent = `El promedio del alumno ${alumno.numero} es: ${promedio.toFixed(2)}`;
+  document.body.appendChild(resultado); // Agrega el resultado al final del cuerpo del documento
 }
